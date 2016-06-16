@@ -1,0 +1,11 @@
+*
+!.gitignore
+!LICENSE
+!AUTHORS
+!payzen/
+!payzen/**
+!README.md
+!requirements.txt
+!setup.py
+__pycache__/
+*.py[cod]
