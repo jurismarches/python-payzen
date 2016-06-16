@@ -1,123 +1,71 @@
-import pytz
-from suds import sudsobject
+import hashlib
+import operator
 from datetime import datetime
-from dateutil.parser import parse as dateutil_parser
-
-# Specific signature keys excludes for API types
-SIGNATURE_EXCLUDES = {
-    'createPaiementIdentInfo': [
-        'cvv'
-    ],
-    'customerModifyInfo': [
-        'customerStatus',
-        'customerAddressNumber',
-        'customerDistrict'
-    ],
-    'identCreationInfo': [
-        'customerStatus',
-        'customerAddressNumber',
-        'customerDistrict',
-        'customerFirstName',
-        'customerLegalName'
-    ]
-}
-
-# Keys to use for response signature calculation
-RESPONSE_SIGNATURE_KEYS = [
-    'timestamp',
-    'errorCode',
-    'extendedErrorCode',
-    'identId',
-    'transactionId',
-    'subscriptionId',
-    'transactionStatus',
-    'paymentWarranty',
-    'amount',
-    'authNumber',
-    'authorizationDate'
-]
 
 
-def get_factory_data(factory, keys=None, excludes=None):
+class SEPAMandateFormData:
     """
-    Returns the factory data as list of tuples
-
-    :param keys: Explicit list of keys to use for signature calculation. If None,
-    uses all the fields from the Factory.
-    :type keys: list
-    :param excludes: A list of fields to exclude for signature calculation
-    :type excludes: list
-    :returns: A list of tuples as (key, value)
-    :rtype: list
+    Utility to generate form data for the payzen payment registration form
     """
-    values = []
-    keys = keys or factory.__keylist__
-    excludes = set(excludes or [])
 
-    # Append default excludes
-    excludes.update(
-        SIGNATURE_EXCLUDES.get(factory.__metadata__.sxtype.name, []))
-    excludes.add('extInfo')
+    def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
+                 payzen_shop_id, payzen_context, payzen_version, update=False):
 
-    for k in keys:
+        self._certificate = payzen_certificate
 
-        # If key is an excludes one, continue
-        if k in excludes:
-            continue
+        self.vads_identifier = payzen_id
+        self.vads_page_action = 'REGISTER_UPDATE' if update else 'REGISTER'
+        self.vads_cust_id = str(user.id)
+        self.vads_cust_title = user.title
+        self.vads_cust_last_name = user.last_name
+        self.vads_cust_first_name = user.first_name
+        self.vads_cust_country = user.country.code if user.country else 'FR'
+        self.vads_cust_email = user.email
+        self.vads_site_id = payzen_shop_id
+        self.vads_ctx_mode = payzen_context
+        self.vads_trans_date = self.get_trans_date()
+        self.vads_action_mode = 'INTERACTIVE'
+        self.vads_version = payzen_version
+        self.vads_payment_cards = ''
 
-        v = getattr(factory, k, None)
+        self.vads_url_cancel = comeback_url
+        self.vads_url_error = comeback_url
+        self.vads_url_refused = comeback_url
+        self.vads_url_return = comeback_url
+        self.vads_url_success = comeback_url
 
-        # If value is a suds Object, return its data
-        if isinstance(v, sudsobject.Object):
-            object_values = get_factory_data(v)
+    @staticmethod
+    def get_trans_date():
+        """
+        :return: AAAAMMJJHHMMSS
+        """
+        utcnow = datetime.utcnow()
+        return utcnow.strftime('%Y%m%d%H%M%S')
 
-            # Only serialize objects with defined values
-            if any(list(zip(*object_values))[1]):
-                values.extend(object_values)
-            else:
-                values.append((k, ''))
+    @property
+    def signature(self):
+        """
+        return the signature for the class data
+        """
+        data_to_sign = {
+            a: getattr(self, a)
+            for a in dir(self)
+            if a.startswith('vads_')}
+        return get_payzen_signature(data_to_sign, self._certificate)
 
-        else:
-            values.append((k, v))
 
-    return values
-
-
-def get_formatted_value(value):
+def get_payzen_signature(data, certificate):
     """
-    Returns the formatted value for the signature calculation
-    Uses rules specified in Systempay documentation :
-
-        - bool is interpreted as an integer (O or 1)
-        - empty values (except integers) are considered as an empty string
-        - datetime values are formatted like 'YYYMMDD' using UTC timezone
-
-    :param value: The input value to format
-    :type value: any
-    :returns: The formatted value
-    :rtype: str
+    The signature is build following those steps :
+      * get all the attribute starting by 'vads_'
+      * order the attributes
+      * build a list with the value of each attribute
+      * append the certificate to the list of values
+      * join all the values with '+'
+      * hash the string with sha1
     """
-    # Boolean format
-    if isinstance(value, bool):
-        return str(int(value))
-
-    # Integer value
-    if isinstance(value, int):
-        return str(value)
-
-    # Empty value
-    if not value:
-        return ''
-
-    # Datetime format
-    if isinstance(value, datetime):
-        return value.astimezone(pytz.UTC).strftime('%Y%m%d')
-
-    # String datetime format
-    try:
-        d = dateutil_parser(value).astimezone(pytz.UTC)
-        return d.strftime('%Y%m%d')
-    except:
-        pass
-
-    return value
+    ordered_items = sorted(data.items(), key=operator.itemgetter(0))
+    values = [v for k, v in ordered_items if k.startswith('vads_')]
+    values.append(certificate)
+    chain_to_hash = "+".join(values)
+    return hashlib.sha1(chain_to_hash.encode('utf-8')).hexdigest()

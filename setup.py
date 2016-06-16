@@ -15,8 +15,6 @@ setup(
         'payzen.codes'
     ],
     install_requires=[
-        'pytz==2016.4',
-        'python-dateutil==2.5.3',
         'suds-jurko==0.6'
     ],
     classifiers=[
