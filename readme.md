@@ -20,8 +20,8 @@ payzen_client =  PayzenClient(
     certificate='0000000000000000',
     context='TEST')
 
-# returns the card or SEPA number associated with the token 0123456
-response = payzen_client.get_token_details(0123456)
+# returns the card or SEPA number associated with the token 123456
+response = payzen_client.get_token_details(123456)
 payment_method.number = response.cardResponse.number
 ```
 
@@ -30,7 +30,7 @@ payment_method.number = response.cardResponse.number
 ``` python
 data = SEPAMandateFormData(
     user=10,
-    payzen_id=0123456,
+    payzen_id=123456,
     update=False,   # if true, update the payment method instead of creating one
     comeback_url=comeback_url,
     payzen_certificate='0000000000000000',
