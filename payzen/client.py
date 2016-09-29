@@ -9,7 +9,7 @@ from functools import wraps
 import suds.client
 from suds.sax.element import Element
 
-from payzen.exceptions import PayzenError
+from payzen.exceptions import PayzenError, PayzenPaymentRefused
 from .codes import errors
 
 PRODUCTION = 'PRODUCTION'
@@ -136,6 +136,10 @@ class PayzenPaymentMixin:
             tech_request,
             shopping_cart_request,
         )
+
+        if (response.commonResponse.responseCode == errors.SUCCESS and
+            response.commonResponse.transactionStatusLabel != 'AUTHORIZED'):
+            raise PayzenPaymentRefused(response=response)
 
         return response
 

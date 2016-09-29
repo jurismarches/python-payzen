@@ -18,3 +18,12 @@ class PayzenError(Exception):
         self.error_code = error_code
         self.extended_error_code = extended_error_code
         self.response = response
+
+
+class PayzenPaymentRefused(Exception):
+    """
+    Payzen Error
+    """
+    def __init__(self, response):
+        super().__init__("Payment refused")
+        self.response = response
