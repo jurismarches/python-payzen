@@ -138,6 +138,7 @@ class PayzenPaymentMixin:
         )
 
         if (response.commonResponse.responseCode == errors.SUCCESS and
+            response.commonResponse.transactionStatusLabel and
             response.commonResponse.transactionStatusLabel != 'AUTHORIZED'):
             raise PayzenPaymentRefused(response=response)
 
