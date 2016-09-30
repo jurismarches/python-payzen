@@ -137,8 +137,9 @@ class PayzenPaymentMixin:
             shopping_cart_request,
         )
 
-        if (response.commonResponse.responseCode == errors.SUCCESS and
-            response.commonResponse.transactionStatusLabel != 'AUTHORIZED'):
+        if (response.commonResponse.responseCode == errors.SUCCESS and not
+            (response.commonResponse.transactionStatusLabel and
+             response.commonResponse.transactionStatusLabel != 'AUTHORIZED')):
             raise PayzenPaymentRefused(response=response)
 
         return response
