@@ -1,4 +1,5 @@
 import hashlib
+from decimal import Decimal, ROUND_HALF_UP
 import operator
 from datetime import datetime
 
@@ -52,6 +53,22 @@ class SEPAMandateFormData:
             for a in dir(self)
             if a.startswith('vads_')}
         return get_payzen_signature(data_to_sign, self._certificate)
+
+
+class SEPAMandateAndPayFormData(SEPAMandateFormData):
+
+    def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
+                 payzen_shop_id, payzen_context, payzen_version, amount,
+                 trans_id, payment_config, update=False):
+        super().__init__(
+            user, payzen_id, comeback_url, payzen_certificate,
+            payzen_shop_id, payzen_context, payzen_version, update)
+        self.vads_page_action = 'REGISTER_PAY'
+        a = amount.quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
+        self.vads_amount = str(a).replace('.', '')
+        self.vads_currency = '978'
+        self.vads_trans_id = str(trans_id)
+        self.vads_payment_config = payment_config
 
 
 def get_payzen_signature(data, certificate):
