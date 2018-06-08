@@ -10,7 +10,8 @@ class SEPAMandateFormData:
     """
 
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
-                 payzen_shop_id, payzen_context, payzen_version, update=False):
+                 payzen_shop_id, payzen_context, payzen_version, update=False,
+                 redirect_timeout=None):
 
         self._certificate = payzen_certificate
 
@@ -34,6 +35,8 @@ class SEPAMandateFormData:
         self.vads_url_refused = comeback_url
         self.vads_url_return = comeback_url
         self.vads_url_success = comeback_url
+        if redirect_timeout is not None:
+            self.vads_redirect_success_timeout = str(redirect_timeout)
 
     @staticmethod
     def get_trans_date():
@@ -59,10 +62,10 @@ class SEPAMandateAndPayFormData(SEPAMandateFormData):
 
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
                  payzen_shop_id, payzen_context, payzen_version, amount,
-                 trans_id, payment_config, update=False):
+                 trans_id, payment_config, update=False, redirect_timeout=None):
         super().__init__(
             user, payzen_id, comeback_url, payzen_certificate,
-            payzen_shop_id, payzen_context, payzen_version, update)
+            payzen_shop_id, payzen_context, payzen_version, update, redirect_timeout)
         self.vads_page_action = 'REGISTER_PAY'
         a = amount.quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
         self.vads_amount = str(a).replace('.', '')
