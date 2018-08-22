@@ -1,7 +1,8 @@
 import hashlib
-from decimal import Decimal, ROUND_HALF_UP
 import operator
 from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
+from urllib.parse import urlparse
 
 
 class SEPAMandateFormData:
@@ -30,11 +31,18 @@ class SEPAMandateFormData:
         self.vads_version = payzen_version
         self.vads_payment_cards = ''
 
-        self.vads_url_cancel = comeback_url
-        self.vads_url_error = comeback_url
-        self.vads_url_refused = comeback_url
-        self.vads_url_return = comeback_url
-        self.vads_url_success = comeback_url
+        query_param_name = 'payment'
+        if urlparse(comeback_url)[4]:
+            # already have query params
+            join_char = '&'
+        else:
+            join_char = '?'
+
+        self.vads_url_cancel = join_char.join([comeback_url, '%s=cancel' % query_param_name])
+        self.vads_url_error = join_char.join([comeback_url, '%s=error' % query_param_name])
+        self.vads_url_refused = join_char.join([comeback_url, '%s=refused' % query_param_name])
+        self.vads_url_return = join_char.join([comeback_url, '%s=return' % query_param_name])
+        self.vads_url_success = join_char.join([comeback_url, '%s=success' % query_param_name])
         if redirect_timeout is not None:
             self.vads_redirect_success_timeout = str(redirect_timeout)
 
