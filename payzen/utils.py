@@ -32,7 +32,7 @@ class SEPAMandateFormData:
         self.vads_payment_cards = ''
 
         query_param_name = 'payment'
-        if urlparse(comeback_url)[4]:
+        if urlparse(comeback_url, allow_fragments=False)[4]:
             # already have query params
             join_char = '&'
         else:
