@@ -8,11 +8,14 @@ from urllib.parse import urlparse
 class SEPAMandateFormData:
     """
     Utility to generate form data for the payzen payment registration form
+
+    ``allow_fragments`` can be set to ``False`` in case your framework
+    put parameters after fragments (e.g., AngularJS).
     """
 
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
                  payzen_shop_id, payzen_context, payzen_version, update=False,
-                 redirect_timeout=None):
+                 redirect_timeout=None, allow_fragments=True):
 
         self._certificate = payzen_certificate
 
@@ -32,7 +35,7 @@ class SEPAMandateFormData:
         self.vads_payment_cards = ''
 
         query_param_name = 'payment'
-        if urlparse(comeback_url, allow_fragments=False)[4]:
+        if urlparse(comeback_url, allow_fragments=allow_fragments)[4]:
             # already have query params
             join_char = '&'
         else:
