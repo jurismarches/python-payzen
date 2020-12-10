@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import hmac
 import operator
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -98,10 +100,16 @@ def get_payzen_signature(data, certificate):
       * build a list with the value of each attribute
       * append the certificate to the list of values
       * join all the values with '+'
-      * hash the string with sha1
+      * hash the string with sha256
     """
     ordered_items = sorted(data.items(), key=operator.itemgetter(0))
     values = [v for k, v in ordered_items if k.startswith('vads_')]
     values.append(certificate)
     chain_to_hash = "+".join(values)
-    return hashlib.sha1(chain_to_hash.encode('utf-8')).hexdigest()
+    return base64.b64encode(
+        hmac.new(
+            certificate.encode('utf-8'),
+            chain_to_hash.encode('utf-8'),
+            hashlib.sha256
+        ).digest()
+    ).decode()
