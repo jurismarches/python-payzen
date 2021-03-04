@@ -15,7 +15,7 @@ class SEPAMandateFormData:
 
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
                  payzen_shop_id, payzen_context, payzen_version, update=False,
-                 redirect_timeout=None, allow_fragments=True):
+                 redirect_timeout=None, allow_fragments=True, extra={}):
 
         self._certificate = payzen_certificate
 
@@ -33,6 +33,9 @@ class SEPAMandateFormData:
         self.vads_action_mode = 'INTERACTIVE'
         self.vads_version = payzen_version
         self.vads_payment_cards = ''
+
+        for key, value in extra.items():
+            setattr(self, f"vads_ext_info_{key}", str(value))
 
         query_param_name = 'payment'
         if urlparse(comeback_url, allow_fragments=allow_fragments)[4]:
