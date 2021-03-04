@@ -77,11 +77,11 @@ class SEPAMandateAndPayFormData(SEPAMandateFormData):
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
                  payzen_shop_id, payzen_context, payzen_version, amount,
                  trans_id, payment_config, update=False, redirect_timeout=None,
-                 allow_fragments=True):
+                 allow_fragments=True, extra={}):
         super().__init__(
             user, payzen_id, comeback_url, payzen_certificate,
             payzen_shop_id, payzen_context, payzen_version, update, redirect_timeout,
-            allow_fragments)
+            allow_fragments, extra)
         self.vads_page_action = 'REGISTER_PAY'
         a = amount.quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
         self.vads_amount = str(a).replace('.', '')
