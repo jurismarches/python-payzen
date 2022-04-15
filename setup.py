@@ -15,7 +15,7 @@ setup(
         'payzen.codes'
     ],
     install_requires=[
-        'suds-jurko==0.6'
+        'suds-community==1.1.0'
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
