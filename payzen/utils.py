@@ -5,7 +5,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from urllib.parse import urlparse
 
 
-class SEPAMandateFormData:
+class RegisterFormData:
     """
     Utility to generate form data for the payzen payment registration form
 
@@ -14,8 +14,8 @@ class SEPAMandateFormData:
     """
 
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
-                 payzen_shop_id, payzen_context, payzen_version, update=False,
-                 redirect_timeout=None, allow_fragments=True, extra={}):
+                 payzen_shop_id, payzen_context, payzen_version, payzen_payment_methods='',
+                 update=False, redirect_timeout=None, allow_fragments=True, extra={}):
 
         self._certificate = payzen_certificate
 
@@ -32,7 +32,7 @@ class SEPAMandateFormData:
         self.vads_trans_date = self.get_trans_date()
         self.vads_action_mode = 'INTERACTIVE'
         self.vads_version = payzen_version
-        self.vads_payment_cards = ''
+        self.vads_payment_cards = payzen_payment_methods
 
         for key, value in extra.items():
             setattr(self, f"vads_ext_info_{key}", str(value))
@@ -72,15 +72,16 @@ class SEPAMandateFormData:
         return get_payzen_signature(data_to_sign, self._certificate)
 
 
-class SEPAMandateAndPayFormData(SEPAMandateFormData):
+class PayFormData(RegisterFormData):
 
     def __init__(self, user, payzen_id, comeback_url, payzen_certificate,
                  payzen_shop_id, payzen_context, payzen_version, amount,
-                 trans_id, payment_config, update=False, redirect_timeout=None,
-                 allow_fragments=True, extra={}):
+                 trans_id, payment_config, payzen_payment_methods='', update=False,
+                 redirect_timeout=None, allow_fragments=True, extra={}):
         super().__init__(
             user, payzen_id, comeback_url, payzen_certificate,
-            payzen_shop_id, payzen_context, payzen_version, update, redirect_timeout,
+            payzen_shop_id, payzen_context, payzen_version,
+            payzen_payment_methods, update, redirect_timeout,
             allow_fragments, extra)
         self.vads_page_action = 'REGISTER_PAY'
         a = amount.quantize(Decimal('1.00'), rounding=ROUND_HALF_UP)
