@@ -28,7 +28,7 @@ payment_method.number = response.cardResponse.number
 **Build the data needed to generate the form to register a Credit Card or a SDD mandate**
 
 ``` python
-data = SEPAMandateFormData(
+data = RegisterFormData(
     user=10,
     payzen_id=123456,
     update=False,   # if true, update the payment method instead of creating one
